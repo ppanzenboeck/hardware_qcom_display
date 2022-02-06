@@ -142,6 +142,36 @@ bool IsCompressedRGBFormat(int format) {
   return false;
 }
 
+bool IsCameraCustomFormat([[maybe_unused]] int format) {
+#ifndef TARGET_LEGACY_CAMERA
+  switch (format) {
+    case HAL_PIXEL_FORMAT_NV21_ZSL:
+      if (CameraInfo::GetInstance() &&
+          !(CameraInfo::GetInstance()->IsCameraUtilsPresent())) {
+        // If the mapping is made to a camera custom format and lib
+        // is absent, we return false and handle internally.
+        return false;
+      }
+      [[fallthrough]];
+    case HAL_PIXEL_FORMAT_NV12_UBWC_FLEX:
+    case HAL_PIXEL_FORMAT_NV12_UBWC_FLEX_2_BATCH:
+    case HAL_PIXEL_FORMAT_NV12_UBWC_FLEX_4_BATCH:
+    case HAL_PIXEL_FORMAT_NV12_UBWC_FLEX_8_BATCH:
+    case HAL_PIXEL_FORMAT_MULTIPLANAR_FLEX:
+    case HAL_PIXEL_FORMAT_RAW_OPAQUE:
+#ifndef NO_RAW10_CUSTOM_FORMAT
+    case HAL_PIXEL_FORMAT_RAW10:
+    case HAL_PIXEL_FORMAT_RAW12:
+#endif
+      return true;
+    default:
+      break;
+  }
+#endif
+
+  return false;
+}
+
 uint32_t GetBppForUncompressedRGB(int format) {
   uint32_t bpp = 0;
   switch (format) {
